@@ -1,0 +1,119 @@
+@import '_utilities';
+
+$border-thickness: 0px;
+
+body {
+    margin: 0;
+    background: $primary-color;
+    color: opposite-font-color($primary-color);
+    font-size: 100%;
+}
+.outer-container {
+    @include center-children();
+    @include border();
+    text-align: center;
+
+    height: 100vh;
+    padding: 0;
+}
+.inner-container {
+    @include border();
+    @include center-children(column);
+    margin: 0 auto;
+    // align-self: flex-end;
+    width: 50%;
+    height: 95%;
+
+    position: relative;
+    .error-box {
+        position: absolute;
+        top: 0;
+        opacity: 0;
+        z-index: -1;
+        transition: opacity 1s, z-index 1s;
+
+        border: 2px solid rgb(237, 67, 55);
+        border-radius: 25px;
+
+        @include center-children();
+
+        background: $primary-color;
+        .error-box__message {
+            margin-left: 1rem;
+            font-size: 1.5rem;
+            @include main-font-style();
+        }
+        .error-box__img {
+            width: 20%;
+            margin: 0.5rem;
+        }
+    }
+    .fade-in {
+        opacity: 1;
+        z-index: 1;
+    }
+
+    .date-day {
+        white-space: pre;
+
+        height: 20%;
+        @include main-font-style();
+        font-size: 1.5rem;
+    }
+    .weather-icon {
+        @include border();
+        @include center-children(column);
+        flex-grow: 1;
+
+        justify-content: flex-end;
+
+        height: 30%;
+
+        width: 50%;
+        .weather-icon__img {
+            height: 70%;
+
+            @include border();
+        }
+    }
+    .weather-desc {
+        @include border();
+        @include center-children(column);
+        height: 50%;
+
+        width: 50%;
+
+        // overflow: hidden;
+        .weather-desc__input {
+            text-align: center;
+
+            @include main-font-style();
+            font-size: 2rem;
+
+            color: opposite-font-color($primary-color);
+            border: none;
+            background: none;
+            &:focus {
+                outline: none;
+            }
+        }
+        .temp-icon-desc {
+            white-space: pre;
+            flex-grow: 1;
+
+            @include main-font-style();
+            font-size: 1.5rem;
+        }
+        .tip-desc {
+            @include border();
+            @include main-font-style();
+            font-size: 1rem;
+        }
+        .mapOpt {
+            @include main-font-style();
+            font-size: 1rem;
+        }
+    }
+}
+@import '_mobile';
+@import '_map';

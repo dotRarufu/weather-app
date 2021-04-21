@@ -1,0 +1,23 @@
+$primary-color: rgb(27, 30, 35);
+$secondary-color: rgb(43, 130, 203);
+$font-stack: Arial, Helvetica, sans-serif;
+
+@mixin border() {
+    border: $border-thickness solid rgb(random(255), random(255), random(255));
+}
+@mixin center-children($dir: row) {
+    display: flex;
+    flex-direction: $dir;
+    justify-content: center;
+    align-items: center;
+}
+@mixin main-font-style() {
+    font-family: $font-stack;
+}
+@function opposite-font-color($bg-color) {
+    @if (lightness($bg-color) >= 70) {
+        @return black;
+    } @else {
+        @return white;
+    }
+}

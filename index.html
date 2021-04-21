@@ -1,51 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Document</title>
+        <!-- <link rel="stylesheet" href="./src/css/style.css" /> -->
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-        crossorigin="" />
-    <!-- Make sure you put this AFTER Leaflet's CSS -->
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-        crossorigin=""></script>
-
-</head>
-
-<body>
-    <div class="outer-container">
-        <div class="inner-container">
-            <div class="error-box-container">
-                <img src="assets/error.png">
-                <div class="error-message"></div>
-            </div>
-            <div class="nav">
-                <ul class="arial">
-                    <li>Option 1</li>
-                    <li>Weather</li>
-                    <li>Option 3</li>
-                </ul>
-            </div>
-            <div class="icon-container">
-
-            </div>
-            <div class="description-container">
-               
-                <div class="icon-temp-desc arial"></div>
-                <div class="tip-desc-container">
-                    <div class="tip-desc arial">It doesn't hurt to bring an umbrella.</div>
+    <body style="background: rgb(27, 30, 35)">
+        <div class="outer-container">
+            <div class="inner-container">
+                <div class="error-box">
+                    <img src="img/error.png" class="error-box__img" />
+                    <div class="error-box__message"></div>
+                </div>
+                <div class="date-day"></div>
+                <div class="weather-icon"></div>
+                <div class="weather-desc">
+                    <div class="temp-icon-desc"></div>
+                    <div class="tip-desc">
+                        It doesn't hurt to bring an umbrella.
+                    </div>
                 </div>
             </div>
         </div>
-        
-    </div>
-    <script src="main.js"></script>
-</body>
-
+        <script type="module" src="./dist/main.js"></script>
+    </body>
 </html>
