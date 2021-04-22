@@ -5,6 +5,7 @@ const geoTz = require('geo-tz');
 
 require('moment-timezone');
 require('../css/style.scss');
+require('../../node_modules/leaflet/dist/leaflet.css');
 
 const gu = require('./genUtility');
 
@@ -157,13 +158,9 @@ inputElem.addEventListener('focusout', () => {
     }, 1000);
 });
 mapOpt.addEventListener('click', async () => {
-    const linkElem = gu.crElem('link');
     const mapDiv = gu.crElem('div');
-    linkElem.href = './node_modules/leaflet/dist/leaflet.css';
-    linkElem.rel = 'stylesheet';
     mapDiv.id = 'map';
     outerContainer.appendChild(mapDiv);
-    document.head.appendChild(linkElem);
 
     const mymap = L.map('map', {
         zoomControl: false,
