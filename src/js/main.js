@@ -9,7 +9,7 @@ require('../../node_modules/leaflet/dist/leaflet.css');
 
 const gu = require('./genUtility');
 
-console.log(`new4`);
+console.log(`new1`);
 
 // Variable Declarations
 const timeDateContainer = gu.selClass('date-day');
