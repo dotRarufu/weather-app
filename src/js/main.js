@@ -178,10 +178,9 @@ mapOpt.addEventListener('click', async () => {
                 'pk.eyJ1Ijoic2tyci10ZWNoIiwiYSI6ImNrbjVwbG55MTA1OWoydXF2a2FoZ2dnNzAifQ.6S7NXcvOygILiPJoo23ceQ',
         }
     ).addTo(mymap);
-    const iconRetinaUrl =
-        './node_modules/leaflet/dist/images/marker-icon-2x.png';
-    const iconUrl = './node_modules/leaflet/dist/images/marker-icon.png';
-    const shadowUrl = './node_modules/leaflet/dist/images/marker-shadow.png';
+    const iconRetinaUrl = '../../../img/marker-icon-2x.png';
+    const iconUrl = '../../../img/marker-icon.png';
+    const shadowUrl = '../../../img/marker-shadow.png';
 
     L.Marker.prototype.options.icon = L.icon({
         iconRetinaUrl,
