@@ -11,22 +11,31 @@
     </head>
 
     <body style="background: rgb(27, 30, 35)">
-        <div class="outer-container">
-            <div class="inner-container">
-                <div class="error-box">
-                    <img src="img/error.png" class="error-box__img" />
-                    <div class="error-box__message"></div>
+        <!-- <div class="sugg">Wanna use map instead?</div> -->
+        <header class="header">myWeatherApp</header>
+        <section class="card-container"></section>
+        <section class="code-section">
+            <h1 class="code-section__header">How does myWeatherApp works?</h1>
+            <!-- <div class="vertical-line"></div> -->
+            <div class="code">
+                <div class="code__line-number">
+                    1<br />2<br />3<br />4<br />5<br />6<br />7<br />8<br />9
                 </div>
-                <div class="date-day"></div>
-                <div class="weather-icon"></div>
-                <div class="weather-desc">
-                    <div class="temp-icon-desc"></div>
-                    <div class="tip-desc">
-                        It doesn't hurt to bring an umbrella.
-                    </div>
+                <div class="code__line">
+                    <inline class="code__comment">// Line of code</inline>
+                    <br />
+                    const lineOfCode = "yey my first code is this and im typing
+                    some nonsense here to test line breaking in my code";<br />
+                    as<br />
+                    asd<br />
+                    asd<br />
+                    asd
+                    <br />
                 </div>
             </div>
-        </div>
+        </section>
+        <div class="add-btn">+</div>
+
         <script type="module" src="./dist/main.js"></script>
     </body>
 </html>

@@ -1,0 +1,81 @@
+.kebab-menu {
+    position: absolute;
+
+    right: 5px;
+    top: 10px;
+
+    height: 38px;
+    width: 30px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    cursor: pointer;
+
+    // border: 1px solid red;
+}
+.kebab-menu__figure {
+    height: 5px;
+    width: 5px;
+    border-radius: 5px;
+
+    margin: 2px 0;
+
+    background: rgb(255, 255, 255);
+}
+.kebab-menu__clicked {
+    position: absolute;
+    top: 0;
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px) opacity(0); // add transition on this
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: backdrop-filter 500ms, opacity 500ms;
+}
+.kebab-menu__clicked--added {
+    backdrop-filter: blur(6px) opacity(1);
+    opacity: 1;
+}
+.kebab-menu__back-btn {
+    font-size: 40px;
+    width: fit-content;
+    margin-left: 15px;
+    opacity: 1;
+    cursor: pointer;
+    float: left;
+}
+.kebab-menu__option {
+    font-size: 25px;
+    font-family: Roboto;
+    color: rgb(100, 99, 99);
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 45px;
+    cursor: pointer;
+    &:hover {
+        background: rgba(0, 0, 0, 0.25);
+        color: rgb(255, 255, 255);
+    }
+}
+.kebab-menu__option-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 450px;
+    width: 100%;
+}
+.kebab-menu__settings {
+    width: fit-content;
+    position: absolute;
+    top: 13px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: Roboto;
+    font-size: 25px;
+}

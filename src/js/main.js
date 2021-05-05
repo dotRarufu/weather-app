@@ -1,340 +1,621 @@
-const countryTimezone = require('country-timezone');
-const L = require('leaflet');
+const countryTimezone = require('country-timezone'); // converts country name to timezone
 const moment = require('moment');
-const geoTz = require('geo-tz');
 
 require('moment-timezone');
 require('../css/style.scss');
 require('../../node_modules/leaflet/dist/leaflet.css');
 
 const gu = require('./genUtility');
+const notifBanner = require('./notifBanner');
+const initMapInstead = require('./mapInstead');
 
-console.log(`new3`);
+const suggestionBox = require('./suggestionBox');
+const unfocCard = require('./unfocusCard.js');
 
-// Variable Declarations
-const timeDateContainer = gu.selClass('date-day');
-const descriptContainer = gu.selClass('weather-desc');
-const outerContainer = gu.selClass('outer-container');
-const iconContainer = gu.selClass('weather-icon');
-const iconTempDesc = gu.selClass('temp-icon-desc');
-const inputElem = gu.crElem('input');
-const imgElem = gu.crElem('img');
-const mapOpt = gu.crElem('div');
-const icon = gu.crElem('img');
-descriptContainer.insertBefore(inputElem, iconTempDesc);
-inputElem.className = 'weather-desc__input';
-inputElem.setAttribute('maxlength', '30');
-inputElem.setAttribute('type', 'text');
-inputElem.setAttribute('placeholder', 'City');
-imgElem.className = 'weather-icon__img';
-icon.className = 'weather-icon__img';
-let lastDesc;
+const cardLocalFuncs = require('./cardLocalFuncs');
+const tipMessages = require('./tipMessages');
 
-// important vars
 const apiKey = 'f80c5ae3ac3a4eb1bf965456210404';
-let mapLastLat = 51.04;
-let mapLastLng = -0.64;
-let lastVal = inputElem.value;
-let raw = moment.tz(moment(), 'Asia/Tokyo');
-inputElem.value = 'Manila';
 
-let dateTime = raw.format('LLL');
-const thirdSpace = gu.find(' ', dateTime)[2];
+let cardObjContainer = [];
 
-// tool func
-function getTz(lat, lang) {
-    return geoTz(lat, lang)[0];
-}
-function displayError(message) {
-    const errorBoxContainer = document.querySelector('.error-box');
-    const errorMsg = document.querySelector('.error-box__message');
-    errorMsg.textContent = message;
-    errorBoxContainer.className += ' fade-in';
-    setTimeout(() => {
-        errorBoxContainer.className = errorBoxContainer.className.replace(
-            `${errorBoxContainer.className.slice(9, 17)}`,
-            ''
-        );
-    }, 3000);
-}
-async function weathApi(place) {
-    iconTempDesc.textContent = 'Loading...';
-    const a = await fetch(
-        `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${place}`
-    );
-    const data = await a.json();
-    return data;
-}
-function displayWeathApiRes(data) {
-    iconContainer.removeChild(document.querySelector('.weather-icon__img'));
-    imgElem.src = `https://${data.current.condition.icon.slice(2)}`;
-    iconTempDesc.textContent = `${data.current.condition.text} \r\n ${data.current.temp_c}\u00B0C`;
-    iconContainer.appendChild(imgElem);
-}
-function moveTime() {
-    setTimeout(() => {
-        raw = moment.tz(moment(), `${getTz(mapLastLat, mapLastLng)}`);
-        dateTime = raw.format('LLL');
-        timeDateContainer.textContent = `${dateTime.slice(
-            thirdSpace + 1
-        )} - ${raw.format('ddd')}\r\n${raw.format('L')}`;
-        console.log('+1');
-        moveTime();
-    }, 60000);
-}
-function initialDisplay() {
-    // Initial time and date display
-    timeDateContainer.textContent = `${dateTime.slice(
-        thirdSpace + 1
-    )} - ${raw.format('ddd')}\r\n${raw.format('L')}`;
-    moveTime();
-    // Initial weather display
-    (async function () {
-        iconTempDesc.textContent = 'Loading...';
-        const a = await fetch(
-            `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${inputElem.value}`
-        );
-        const data = await a.json();
-        icon.src = `https://${data.current.condition.icon.slice(2)}`;
-        iconContainer.appendChild(icon);
-        iconTempDesc.textContent = `${data.current.condition.text} \r\n ${data.current.temp_c}\u00B0C`;
-        lastDesc = iconTempDesc.textContent;
-        // iconLink = icon.src;
-    })();
-}
-initialDisplay();
+class Card {
+    constructor(name) {
+        const cardContainer = gu.selClass('card-container');
+        this.cardName = name;
 
-// Events
-inputElem.addEventListener('change', async () => {
-    if (inputElem.value !== lastVal && inputElem.value !== '') {
-        // Check if input is non equal to last val and nonempty
-        const p = inputElem.value.match(/[\s]/);
-        const q = inputElem.value.match(/[0-9]/g);
-        if ((!p && !q) || (p && !q)) {
-            // Check if input contains no space and no numbers, or spaces but not numbers
-            const data = await weathApi(inputElem.value);
-            console.log(data);
-            if (data.error) {
-                displayError(`Uh oh, no result for "${inputElem.value}"`);
-                iconTempDesc.textContent = lastDesc;
-                inputElem.value = lastVal;
-            } else if (inputElem.value === data.location.name) {
-                // Check if input matches the location
-                lastVal = inputElem.value;
-                displayWeathApiRes(data);
-                raw = moment.tz(
-                    moment(),
-                    countryTimezone.getTimezones(inputElem.value)[0]
-                );
-                dateTime = raw.format('LLL');
-                timeDateContainer.textContent = `${dateTime.slice(
-                    thirdSpace + 1
-                )} - ${raw.format('ddd')}\r\n${raw.format('L')}`;
-            } else {
-                displayError(`Uh oh, no result for "${inputElem.value}"`);
-                iconTempDesc.textContent = lastDesc;
-                inputElem.value = lastVal;
+        // For creating elems
+        this.createElems = function (config) {
+            const elems = config;
+            for (let i = 0; i < Object.keys(elems).length; i += 1) {
+                const HtmlElems = Object.keys(elems)[i];
+                for (
+                    let j = 0;
+                    j < Object.keys(elems[`${HtmlElems}`]).length;
+                    j += 1
+                ) {
+                    this[
+                        `${Object.keys(elems[`${HtmlElems}`])[j]}`
+                    ] = gu.crElem(`${HtmlElems}`);
+                    this[
+                        `${Object.keys(elems[`${HtmlElems}`])[j]}`
+                    ].className = `${
+                        elems[`${HtmlElems}`][
+                            `${Object.keys(elems[`${HtmlElems}`])[j]}`
+                        ]
+                    }`;
+                }
             }
-        } else {
-            displayError('Hm, only letters are allowed');
-            inputElem.value = lastVal;
-        }
-    } else {
-        displayError("Nope, it can't be blank");
-        inputElem.value = lastVal;
-    }
-});
-inputElem.addEventListener('focusin', () => {
-    mapOpt.setAttribute('class', 'mapOpt');
-    mapOpt.textContent = 'Use a map instead';
-    descriptContainer.insertBefore(mapOpt, iconTempDesc);
-});
-inputElem.addEventListener('focusout', () => {
-    setTimeout(() => {
-        mapOpt.className += ' fade-out';
+        };
+
+        this.createElems({
+            div: {
+                cardItem: 'card-item',
+                cardItemTime: 'card-item__time',
+                cardItemIconDesc: 'card-item__icon-desc',
+                cardItemDayDate: 'card-item__day-date',
+                cardItemTip: 'card-item__tip',
+            },
+            input: { cardItemInput: 'card-item__input' },
+            img: { cardItemIcon: 'card-item__icon' },
+        });
+
+        this.lastLatFromMap = 35.69;
+        this.lastLngFromMap = 139.69;
+        this.cardItemInput.value = 'Manila';
+        this.isActive = false;
+        this.lastInputVal = this.cardItemInput.value;
+        this.locMethodUsed = 'input'; // default
+
+        // Functions that is used outside
+        this.weathApi = async function (place) {
+            // Returns weather data from input location
+            this.cardItemIconDesc.textContent = 'Loading...';
+            this.a = await fetch(
+                `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${place}`
+            );
+            this.data = await this.a.json();
+            return this.data;
+        };
+        this.newTime = async function () {
+            // Sets time initial time
+            this.raw = moment.tz(
+                moment(),
+                cardLocalFuncs.inputOrCoord(
+                    this.cardItemInput.value,
+                    this.locMethodUsed,
+                    this.data.location.tz_id
+                )
+            );
+            this.cardItemDayDate.textContent = `${this.raw.format(
+                'dddd'
+            )}\r\n${this.raw.format('L')}`;
+            this.dateTime = this.raw.format('LLL');
+            this.cardItemTime.textContent = `${this.dateTime.slice(
+                gu.find(' ', this.dateTime)[2] + 1
+            )}`;
+        };
+        this.displayWeathApiRes = function (data) {
+            // Sets weather icon and weather description
+            this.cardItemIcon.src = `https://${data.current.condition.icon.slice(
+                2
+            )}`;
+            this.cardItemIconDesc.textContent = `${data.current.condition.text}\r\n${data.current.temp_c}\u00B0C`;
+        };
+        this.inputDataValidation = async function (mode) {
+            // console.log(`Start: "${this.cardItemInput.value}"`);
+            // This remove characters before the first letter or number
+            if (mode !== 'map') {
+                // !== 'map' means user enters a location name or coordinates
+                this.cardItemInput.value = this.cardItemInput.value.slice(
+                    this.cardItemInput.value.indexOf(
+                        this.cardItemInput.value.match(/[a-zA-Z0-9]/)
+                    )
+                );
+            }
+            // console.log(`After stage 1: "${this.cardItemInput.value}"`);
+            // This remove characters after the last letter or number
+            if (mode !== 'map') {
+                // !== 'map' means user enters a location name or coordinates
+                this.cardItemInput.value = `${this.cardItemInput.value.slice(
+                    0,
+                    cardLocalFuncs.getLastLetterNum(this.cardItemInput.value)
+                )}`;
+            }
+            // console.log(`After stage 2: "${this.cardItemInput.value}"`);
+            // This removes extra space between letters or comma and number
+            if (mode !== 'map' && this.cardItemInput.value.match(/\s/)) {
+                const charBeforeSpace = [];
+                const charAfterSpace = [];
+                let string;
+                for (let i = 0; i < this.cardItemInput.value.length; i += 1) {
+                    if (i !== 0) {
+                        if (
+                            this.cardItemInput.value[i].match(/[a-zA-Z,0-9]/) &&
+                            this.cardItemInput.value[i - 1] === ' '
+                        ) {
+                            charAfterSpace.push(i);
+                        }
+                    }
+                    if (i !== this.cardItemInput.value.length - 1) {
+                        if (
+                            this.cardItemInput.value[i + 1] === ' ' &&
+                            this.cardItemInput.value[i].match(/[a-zA-Z,0-9]/)
+                        ) {
+                            charBeforeSpace.push(i);
+                        }
+                    }
+                }
+                if (!charBeforeSpace) {
+                    // If there are characters before space
+                    for (let i = 0; i < charBeforeSpace.length; i += 1) {
+                        if (i !== charBeforeSpace.length) {
+                            if (i === 0 && i === charBeforeSpace.length - 1) {
+                                string = `${this.cardItemInput.value.slice(
+                                    0,
+                                    charBeforeSpace[i] + 1
+                                )} ${this.cardItemInput.value.slice(
+                                    charAfterSpace[i]
+                                )}`;
+                            } else if (i === 0) {
+                                string = `${this.cardItemInput.value.slice(
+                                    0,
+                                    charBeforeSpace[i] + 1
+                                )}`;
+                            } else if (
+                                i !== 0 &&
+                                i !== charBeforeSpace.length - 1
+                            ) {
+                                string += ` ${this.cardItemInput.value.slice(
+                                    charAfterSpace[i - 1],
+                                    charBeforeSpace[i] + 1
+                                )}`;
+                            } else if (i === charBeforeSpace.length - 1) {
+                                string += ` ${this.cardItemInput.value.slice(
+                                    charAfterSpace[i - 1],
+                                    charBeforeSpace[i] + 1
+                                )} ${this.cardItemInput.value.slice(
+                                    charAfterSpace[i]
+                                )}`;
+                            } else {
+                                console.log(`error on ${i}`);
+                            }
+                        }
+                    }
+                } else {
+                    // console.log('Input has only spaces');
+                    string = this.cardItemInput.value;
+                }
+                // Fixes space around comma
+                if (this.cardItemInput.value.match(/[,]/)) {
+                    string = string.replace(' ,', ',');
+                }
+
+                this.cardItemInput.value = string;
+            }
+            // console.log(`After stage 3: "${this.cardItemInput.value}"`);
+            // This fixes capitalization of input
+            if (
+                (this.cardItemInput.value.slice(-1)[0] !== ' ' ||
+                    this.cardItemInput.value[0] !== ' ') &&
+                this.cardItemInput.value !== ''
+            ) {
+                if (this.cardItemInput.value.match(/\s/g)) {
+                    const indices = await gu.AllOccurIndex(
+                        this.cardItemInput.value,
+                        ' '
+                    );
+                    let final = `${this.cardItemInput.value[0].toUpperCase()}${this.cardItemInput.value
+                        .slice(1, indices[0])
+                        .toLowerCase()}`;
+                    for (let i = 0; i < indices.length; i += 1) {
+                        if (i === indices.length - 1) {
+                            try {
+                                final += ` ${this.cardItemInput.value[
+                                    indices[i] + 1
+                                ].toUpperCase()}${this.cardItemInput.value
+                                    .slice(indices[i] + 2)
+                                    .toLowerCase()}`;
+                            } catch (err) {
+                                notifBanner(
+                                    "C'mon, you can do better than that"
+                                );
+                            }
+                        } else {
+                            final += ` ${this.cardItemInput.value[
+                                indices[i] + 1
+                            ].toUpperCase()}${this.cardItemInput.value
+                                .slice(indices[i] + 2, [indices[i + 1]])
+                                .toLowerCase()}`;
+                        }
+                    }
+                    this.cardItemInput.value = final;
+                } else {
+                    this.cardItemInput.value = `${this.cardItemInput.value[0].toUpperCase()}${this.cardItemInput.value.slice(
+                        1
+                    )}`;
+                }
+            }
+            // console.log(`After stage 4: "${this.cardItemInput.value}"`);
+
+            if (
+                (this.cardItemInput.value !== this.lastInputVal &&
+                    this.cardItemInput.value[0] !== ' ' &&
+                    this.cardItemInput.value[0] !== ' ') ||
+                mode === 'map'
+            ) {
+                console.log(this.cardItemInput.value);
+                // if input has no number
+                if (!this.cardItemInput.value.match(/[0-9]/g)) {
+                    console.log(this.cardItemInput.value);
+                    this.data = await this.weathApi(this.cardItemInput.value);
+                    console.log(this.cardItemInput.value);
+                    if (this.data.error) {
+                        notifBanner(
+                            'error',
+                            `Uh oh, no result for "${this.cardItemInput.value}"`
+                        );
+                        this.cardItemIconDesc.textContent = this.lastDesc;
+                        this.cardItemInput.value = this.lastInputVal;
+                    } else if (
+                        this.cardItemInput.value === this.data.location.name // || input value is = to data.lat and lon
+                    ) {
+                        // Check if input matches the location
+                        this.lastInputVal = this.cardItemInput.value;
+                        this.displayWeathApiRes(this.data);
+                        this.raw = moment.tz(
+                            moment(),
+                            countryTimezone.getTimezones(
+                                this.cardItemInput.value
+                            )[0]
+                        );
+                        this.dateTime = this.raw.format('LLL');
+                        this.cardItemTime.textContent = `${this.dateTime.slice(
+                            gu.find(' ', this.dateTime)[2] + 1
+                        )}`;
+                        this.cardItemDayDate.textContent = `${this.raw.format(
+                            'dddd'
+                        )}\r\n${this.raw.format('L')}`;
+                        this.locMethodUsed = 'input';
+                        this.newTime();
+                        console.log(this.data);
+                    } else {
+                        notifBanner(
+                            'error',
+                            `Uh oh, no result for "${this.cardItemInput.value}"`
+                        );
+                        this.cardItemIconDesc.textContent = this.lastDesc;
+                        this.cardItemInput.value = this.lastInputVal;
+                    }
+                }
+                // if input has number
+                else {
+                    // checks if input is valid - for coordinate input
+                    // formats input value in lat and lon
+                    if (this.cardItemInput.value.indexOf(`,`) !== -1) {
+                        this.cardItemInputLat = this.cardItemInput.value.slice(
+                            0,
+                            this.cardItemInput.value.indexOf(',')
+                        );
+                        this.cardItemInputLon = this.cardItemInput.value.slice(
+                            this.cardItemInput.value.indexOf(`,`) + 1
+                        );
+                        if (
+                            Number.isNaN(Number(this.cardItemInputLat)) || // although this looks like a tautology, its not, it can be NaN when input has string
+                            Number.isNaN(Number(this.cardItemInputLon))
+                        ) {
+                            notifBanner(
+                                'error',
+                                `C'mon, type a proper coordinate`
+                            );
+                        } else {
+                            // sets lat lon decimal point to 2 if decimal point is present
+                            this.cardItemInputLon = Number(
+                                Number(this.cardItemInputLon).toFixed(2)
+                            );
+                            this.cardItemInputLat = Number(
+                                Number(this.cardItemInputLat).toFixed(2)
+                            );
+                            this.data = await this.weathApi(
+                                this.cardItemInput.value
+                            );
+                            if (this.data.error) {
+                                notifBanner(
+                                    'error',
+                                    `Uh oh, no result for "${this.cardItemInput.value}"`
+                                );
+                                this.cardItemIconDesc.textContent = this.lastDesc;
+                                this.cardItemInput.value = this.lastInputVal;
+                            } else if (
+                                this.cardItemInputLat ===
+                                    this.data.location.lat &&
+                                this.cardItemInputLon === this.data.location.lon // || input value is = to data.lat and lon
+                            ) {
+                                // Check if input lat and lon matches data lat and lon
+                                this.displayWeathApiRes(this.data);
+                                this.raw = moment.tz(
+                                    moment(),
+                                    countryTimezone.getTimezones(
+                                        this.cardItemInput.value
+                                    )[0]
+                                );
+                                this.dateTime = this.raw.format('LLL');
+                                this.cardItemTime.textContent = `${this.dateTime.slice(
+                                    gu.find(' ', this.dateTime)[2] + 1
+                                )}`;
+                                this.cardItemDayDate.textContent = `${this.raw.format(
+                                    'dddd'
+                                )}\r\n${this.raw.format('L')}`;
+                                if (mode === 'map') {
+                                    this.locMethodUsed = 'map';
+                                } else {
+                                    this.locMethodUsed = 'input';
+                                }
+
+                                this.newTime();
+                                this.cardItemInput.value = `${this.cardItemInputLat}, ${this.cardItemInputLon}`;
+                                this.lastDesc = this.cardItemIconDesc.textContent;
+                                this.lastInputVal = this.cardItemInput.value;
+
+                                this.lastInputVal = this.cardItemInput.value; // add input beautification on this
+                            } else {
+                                console.log(this.cardItemInputLat);
+                                console.log(this.data.location.lat);
+                                notifBanner(
+                                    'error',
+                                    `Uh oh, no result for "${this.cardItemInput.value}"`
+                                );
+
+                                this.cardItemIconDesc.textContent = this.lastDesc;
+                                this.cardItemInput.value = this.lastInputVal; // add input beautification on this
+                            }
+                        }
+                    } else {
+                        notifBanner(
+                            'error',
+                            `Hm, are you sure with "${this.cardItemInput.value}"?`
+                        );
+                    }
+                    console.log(
+                        `Lat: ${typeof this.cardItemInputLat} ${
+                            this.cardItemInputLat
+                        } \n Lon: ${typeof this.cardItemInputLon} ${
+                            this.cardItemInputLon
+                        }`
+                    );
+                }
+            }
+        };
+        this.updateCardTip = function () {
+            if (
+                this.cardItemTime.textContent.slice(-2) === 'AM' &&
+                Number(this.cardItemTime.textContent[0]) <= 8
+            ) {
+                this.cardItemTip.textContent =
+                    tipMessages.morning[
+                        gu.random(0, tipMessages.morning.length - 1)
+                    ];
+                console.log(0);
+            } else if (
+                this.cardItemTime.textContent.slice(-2) === 'AM' &&
+                Number(this.cardItemTime.textContent[0]) >= 9 &&
+                Number(this.cardItemTime.textContent[0]) <= 11
+            ) {
+                this.cardItemTip.textContent =
+                    tipMessages.noon[gu.random(0, tipMessages.noon.length - 1)];
+            } else if (
+                (this.cardItemTime.textContent.slice(-2) === 'PM' &&
+                    Number(this.cardItemTime.textContent[0]) === 12) ||
+                Number(this.cardItemTime.textContent[0]) <= 5
+            ) {
+                this.cardItemTip.textContent =
+                    tipMessages.dawn[gu.random(0, tipMessages.dawn.length - 1)];
+            } else if (
+                this.cardItemTime.textContent.slice(-2) === 'PM' &&
+                Number(this.cardItemTime.textContent[0]) >= 6
+            ) {
+                this.cardItemTip.textContent =
+                    tipMessages.night[
+                        gu.random(0, tipMessages.night.length - 1)
+                    ];
+                console.log(1);
+            }
+            console.log('line124');
+        };
+
+        // Initial display
+        this.cardInitialDisplay = async function () {
+            // this isnt used outside this object, but this cant work in function (since its not suggested that u pass an object and reassign its properties through this)
+            this.cardItemIconDesc.textContent = 'Loading...';
+
+            // Initiates weather description and icon
+            this.initWeathDescNIcon = async () => {
+                this.a = await fetch(
+                    `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${this.cardItemInput.value}`
+                );
+                this.data = await this.a.json();
+                this.cardItemIcon.src = `https://${this.data.current.condition.icon.slice(
+                    2
+                )}`;
+                this.cardItemIconDesc.textContent = `${this.data.current.condition.text}\r\n${this.data.current.temp_c}\u00B0C`;
+                this.lastDesc = this.cardItemIconDesc.textContent;
+            };
+            this.initTimeDayDate = async () => {
+                // Initiates time, day, and date
+                this.raw = moment.tz(
+                    moment(),
+                    countryTimezone.getTimezones(this.cardItemInput.value)[0]
+                );
+                this.dateTime = this.raw.format('LLL');
+                this.cardItemTime.textContent = `${this.dateTime.slice(
+                    gu.find(' ', this.dateTime)[2] + 1
+                )}`;
+                this.cardItemDayDate.textContent = `${this.raw.format(
+                    'dddd'
+                )}\r\n${this.raw.format('L')}`;
+            };
+            // Initiates moving clock
+            this.moveTime = function () {
+                setTimeout(() => {
+                    this.raw = moment.tz(
+                        moment(),
+                        cardLocalFuncs.inputOrCoord(
+                            this.cardItemInput.value,
+                            this.locMethodUsed,
+                            this.data.location.tz_id
+                        )
+                    );
+                    this.cardItemDayDate.textContent = `${this.raw.format(
+                        'dddd'
+                    )}\r\n${this.raw.format('L')}`;
+                    this.dateTime = this.raw.format('LLL');
+                    this.cardItemTime.textContent = `${this.dateTime.slice(
+                        gu.find(' ', this.dateTime)[2] + 1
+                    )}`;
+                    this.moveTime();
+                }, 60000);
+                // Updates card tip
+                this.updateCardTip();
+            };
+
+            this.initWeathDescNIcon();
+            this.initTimeDayDate();
+            this.moveTime();
+        };
+        this.cardInitialDisplay();
+
+        // When user changes input
+        this.cardItemInput.addEventListener('change', async () => {
+            // beautifies input (fixes capitalization)
+            await this.inputDataValidation();
+            this.updateCardTip();
+        });
+        // When user selected the card
+        this.cardItem.addEventListener('click', async () => {
+            if (!this.isActive) {
+                this.cardItem.className += ' selectCard';
+                this.isActive = true;
+                gu.selClass('add-btn').className = 'add-btn opacity-01';
+
+                // Displays the kebab menu
+                this.createElems({
+                    div: { kebabMenu: 'kebab-menu' },
+                    figure: { kebabFigure: 'kebab-menu__figure' },
+                });
+                this.kebabFigureCln1 = this.kebabFigure.cloneNode(true);
+                this.kebabFigureCln2 = this.kebabFigure.cloneNode(true);
+                this.kebabMenu.appendChild(this.kebabFigure);
+                this.kebabMenu.appendChild(this.kebabFigureCln1);
+                this.kebabMenu.appendChild(this.kebabFigureCln2);
+                this.cardItem.appendChild(this.kebabMenu);
+
+                // Kebab menu interface
+                this.kebabMenu.addEventListener('click', () => {
+                    this.kebabClicked = gu.crElem('div');
+                    const kebabElems = gu.createElems({
+                        div: {
+                            removeCard: 'kebab-menu__option',
+                            mapInstead: 'kebab-menu__option',
+                            backBtn: 'kebab-menu__back-btn',
+                            options: 'kebab-menu__option-list',
+                            settings: 'kebab-menu__settings',
+                        },
+                    });
+
+                    this.kebabClicked.className = 'kebab-menu__clicked';
+
+                    kebabElems.removeCard.textContent = 'Remove this card';
+                    kebabElems.mapInstead.textContent =
+                        'Use map to find a location';
+                    kebabElems.settings.textContent = 'Settings';
+                    kebabElems.backBtn.textContent = '‹';
+
+                    this.kebabClicked.appendChild(kebabElems.backBtn);
+                    this.kebabClicked.appendChild(kebabElems.settings);
+                    kebabElems.options.appendChild(kebabElems.removeCard);
+                    kebabElems.options.appendChild(kebabElems.mapInstead);
+                    this.kebabClicked.appendChild(kebabElems.options);
+                    this.cardItem.appendChild(this.kebabClicked);
+                    setTimeout(() => {
+                        this.kebabClicked.className +=
+                            ' kebab-menu__clicked--added';
+                    }, 10);
+
+                    kebabElems.backBtn.addEventListener('click', () => {
+                        this.kebabClicked.className = `${this.kebabClicked.className.replace(
+                            'kebab-menu__clicked--added',
+                            ''
+                        )}`;
+                        setTimeout(() => {
+                            this.kebabClicked.remove();
+                        }, 500);
+                    });
+                    kebabElems.mapInstead.addEventListener('click', () => {
+                        initMapInstead(cardObjContainer);
+                    });
+                    kebabElems.removeCard.addEventListener('click', () => {
+                        this.cardItem.className = `${this.cardItem.className.replace(
+                            'card-item--added',
+                            ''
+                        )}`;
+                        setTimeout(() => {
+                            this.cardItem.remove();
+                        }, 1000);
+                    });
+                });
+                // Updates card tip
+                this.updateCardTip();
+
+                for (let i = 0; i < cardObjContainer.length; i += 1) {
+                    if (
+                        cardObjContainer[i].isActive &&
+                        cardObjContainer[i] !== this
+                    ) {
+                        cardObjContainer[i].cardItem.className =
+                            'card-item card-item--added';
+                        cardObjContainer[i].isActive = false;
+                    }
+                }
+            } else {
+                // blabla
+            }
+        });
+        // When user focus on input
+        this.cardItemInput.addEventListener('focus', () => {
+            suggestionBox(cardObjContainer);
+        });
+        // When user unfocus on input
+        this.cardItemInput.addEventListener('focusout', () => {
+            if (document.querySelector('.sugg')) {
+                document.querySelector('.sugg').className = 'sugg';
+                setTimeout(() => {
+                    this.mapInstead = false;
+                    document.body.removeChild(document.querySelector('.sugg'));
+                }, 400);
+            }
+        });
+
+        this.cardItem.appendChild(this.cardItemTime);
+        this.cardItem.appendChild(this.cardItemInput);
+        this.cardItem.appendChild(this.cardItemIcon);
+        this.cardItem.appendChild(this.cardItemIconDesc);
+        this.cardItem.appendChild(this.cardItemDayDate);
+        this.cardItem.appendChild(this.cardItemTip);
+        cardContainer.appendChild(this.cardItem);
+        // For animation purpose
         setTimeout(() => {
-            mapOpt.remove();
-        }, 1000);
-    }, 1000);
+            this.cardItem.className += ' card-item--added';
+        }, 100);
+    }
+}
+cardObjContainer = [new Card(0), new Card(1)];
+
+// Removes border on focused card, when user click outside the card
+unfocCard(cardObjContainer);
+
+// Add card button
+gu.selClass('add-btn').addEventListener('click', () => {
+    cardObjContainer.push(new Card());
+    // For the new set of cards
+    unfocCard(cardObjContainer);
 });
-mapOpt.addEventListener('click', async () => {
-    const mapDiv = gu.crElem('div');
-    mapDiv.id = 'map';
-    outerContainer.appendChild(mapDiv);
-
-    const mymap = L.map('map', {
-        zoomControl: false,
-    }).setView([mapLastLat, mapLastLng], 13);
-    L.tileLayer(
-        'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
-        {
-            attribution:
-                'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            maxZoom: 18,
-            id: 'mapbox/streets-v11',
-            tileSize: 512,
-            zoomOffset: -1,
-            accessToken:
-                'pk.eyJ1Ijoic2tyci10ZWNoIiwiYSI6ImNrbjVwbG55MTA1OWoydXF2a2FoZ2dnNzAifQ.6S7NXcvOygILiPJoo23ceQ',
-        }
-    ).addTo(mymap);
-    const iconRetinaUrl = './img/marker-icon-2x.png';
-    const iconUrl = './img/marker-icon.png';
-    const shadowUrl = './img/marker-shadow.png';
-
-    L.Marker.prototype.options.icon = L.icon({
-        iconRetinaUrl,
-        iconUrl,
-        shadowUrl,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        tooltipAnchor: [16, -28],
-        shadowSize: [41, 41],
-    });
-    const markerA = L.marker([mapLastLat, mapLastLng], {
-        draggable: true,
-    }).addTo(mymap);
-    L.control
-        .zoom({
-            position: 'topright',
-        })
-        .addTo(mymap);
-    // Important variable for events below
-    let latLng = `${mapLastLat}, ${mapLastLng}`;
-    // Variables for userPlace and backElem event
-    const userPlace = gu.crElem('div');
-    const backElem = gu.crElem('div');
-    userPlace.className = 'user-place';
-    backElem.className = 'back-btn';
-    backElem.textContent = '<';
-    userPlace.textContent = 'Set this place';
-    outerContainer.appendChild(userPlace);
-    outerContainer.appendChild(backElem);
-
-    // Events inside map
-    markerA.on('moveend', (e) => {
-        const lat = e.sourceTarget._latlng.lat
-            .toString()
-            .slice(0, e.sourceTarget._latlng.lat.toString().indexOf('.') + 5);
-        const lng = e.sourceTarget._latlng.lng
-            .toString()
-            .slice(0, e.sourceTarget._latlng.lat.toString().indexOf('.') + 5);
-        latLng = `${lat},${lng}`;
-        mapLastLat = Number(lat);
-        mapLastLng = Number(lng);
-    });
-    mymap.on('click', (e) => {
-        markerA.setLatLng(e.latlng);
-        const lat = e.latlng
-            .toString()
-            .slice(
-                e.latlng.toString().indexOf('(') + 1,
-                e.latlng.toString().indexOf(')')
-            )
-            .replace(' ', '')
-            .slice(
-                0,
-                e.latlng
-                    .toString()
-                    .slice(
-                        e.latlng.toString().indexOf('(') + 1,
-                        e.latlng.toString().indexOf(')')
-                    )
-                    .replace(' ', '')
-                    .indexOf(',')
-            )
-            .slice(
-                0,
-                e.latlng
-                    .toString()
-                    .slice(
-                        e.latlng.toString().indexOf('(') + 1,
-                        e.latlng.toString().indexOf(')')
-                    )
-                    .replace(' ', '')
-                    .slice(
-                        0,
-                        e.latlng
-                            .toString()
-                            .slice(
-                                e.latlng.toString().indexOf('(') + 1,
-                                e.latlng.toString().indexOf(')')
-                            )
-                            .replace(' ', '')
-                            .indexOf(',')
-                    )
-                    .indexOf('.') + 5
-            );
-        const lng = e.latlng
-            .toString()
-            .slice(
-                e.latlng.toString().indexOf('(') + 1,
-                e.latlng.toString().indexOf(')')
-            )
-            .replace(' ', '')
-            .slice(
-                e.latlng
-                    .toString()
-                    .slice(
-                        e.latlng.toString().indexOf('(') + 1,
-                        e.latlng.toString().indexOf(')')
-                    )
-                    .replace(' ', '')
-                    .indexOf(',') + 1
-            )
-            .slice(
-                0,
-                e.latlng
-                    .toString()
-                    .slice(
-                        e.latlng.toString().indexOf('(') + 1,
-                        e.latlng.toString().indexOf(')')
-                    )
-                    .replace(' ', '')
-                    .slice(
-                        e.latlng
-                            .toString()
-                            .slice(
-                                e.latlng.toString().indexOf('(') + 1,
-                                e.latlng.toString().indexOf(')')
-                            )
-                            .replace(' ', '')
-                            .indexOf(',') + 1
-                    )
-                    .indexOf('.') + 5
-            );
-        latLng = `${lat},${lng}`;
-        mapLastLat = Number(lat);
-        mapLastLng = Number(lng);
-    });
-    userPlace.addEventListener('click', async () => {
-        mapDiv.remove();
-        userPlace.remove();
-        backElem.remove();
-        displayWeathApiRes(await weathApi(latLng));
-        inputElem.value = latLng;
-        raw = moment.tz(moment(), `${getTz(mapLastLat, mapLastLng)}`);
-        dateTime = raw.format('LLL');
-        timeDateContainer.textContent = `${dateTime.slice(
-            thirdSpace + 1
-        )} - ${raw.format('ddd')}\r\n${raw.format('L')}`;
-    });
-    backElem.addEventListener('click', () => {
-        mapDiv.remove();
-        userPlace.remove();
-        backElem.remove();
-    });
-});
-
-/*
-2. store user's location on localStorage then put it in the input.value
-3. automatically get the user's location via geolocation api
-
-/*
-1. set the initial place or lat based on users position or last input using localStorage
-2. get the time based on given point in map
-
-0. change pointer icon to red
-0.1. add transition when opening and closing map
-*/

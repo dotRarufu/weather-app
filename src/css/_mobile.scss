@@ -1,3 +1,25 @@
+@media only screen and (max-width: 929px) {
+    .code {
+        width: 90%;
+        font-size: 11px;
+        padding: 3.75% 0 3.75% 0;
+    }
+    .code__line-number {
+        margin-right: 3%;
+        margin-left: 1%;
+        width: 5%;
+        // add something that tells that indentation is disalbed at this screen size
+    }
+    .header {
+        font-size: 40px;
+    }
+}
+@media only screen and (min-width: 768px) and (max-width: 1279px) {
+    // add a code in js that spawns 2 cards
+    .card-container {
+        justify-content: space-around;
+    }
+}
 @media only screen and (max-width: 768px) {
     .inner-container {
         width: 100%;
