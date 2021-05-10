@@ -1,14 +1,11 @@
 @media only screen and (max-width: 929px) {
-    .code {
+    #code {
         width: 90%;
         font-size: 11px;
         padding: 3.75% 0 3.75% 0;
     }
-    .code__line-number {
-        margin-right: 3%;
-        margin-left: 1%;
-        width: 5%;
-        // add something that tells that indentation is disalbed at this screen size
+    .code-section__files {
+        width: 90%;
     }
     .header {
         font-size: 40px;
