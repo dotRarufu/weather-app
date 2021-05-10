@@ -3,7 +3,7 @@ const gu = require('./genUtility');
 const codeList = require('./codeList');
 
 require('brace/mode/javascript');
-require('brace/theme/monokai');
+require('brace/theme/ambiance');
 
 function initCode() {
   const editor = ace.edit('code');
