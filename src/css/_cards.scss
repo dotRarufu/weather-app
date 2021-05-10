@@ -1,0 +1,85 @@
+.card-container {
+  // padding-left: 100px;
+  // padding-right: 100px;
+
+  display: flex;
+  justify-content: center;
+  height: fit-content;
+  flex-wrap: wrap;
+
+  // @include border();
+
+  margin-bottom: 80px;
+}
+.card-item {
+  border-radius: 18px;
+  height: 550px;
+  width: 323px;
+
+  padding: 24px 0 24px 0;
+
+  background-color: rgb(50, 61, 72);
+
+  position: relative;
+
+  // flex-basis: 323px;
+  // flex-grow: 0;
+  opacity: 0;
+  transition: opacity 1s, border 500ms;
+
+  text-align: center;
+  border: 3px solid transparent;
+  margin: 40px;
+}
+.card-item__time {
+  font-family: Roboto;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+.card-item__input {
+  text-align: center;
+
+  color: rgb(255, 255, 255);
+  font-family: Roboto;
+  font-size: 30px;
+
+  margin-bottom: 30px;
+
+  border: none;
+  background: none;
+  margin: 0;
+  width: 100%;
+  padding: 0;
+  &:focus {
+    outline: none;
+  }
+}
+.card-item__icon {
+  height: 163px;
+  width: 203px;
+}
+.card-item__icon-desc {
+  font-family: roboto;
+  font-size: 25px;
+
+  white-space: pre;
+
+  margin-bottom: 52px;
+}
+.card-item__day-date {
+  font-family: Roboto;
+  font-size: 20px;
+
+  white-space: pre;
+
+  margin-bottom: 80px;
+}
+.card-item__tip {
+  font-family: Roboto;
+  font-size: 15px;
+
+  padding: 0 10px;
+}
+.card-item--added {
+  opacity: 1;
+}

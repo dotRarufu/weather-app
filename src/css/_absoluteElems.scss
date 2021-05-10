@@ -1,0 +1,73 @@
+.sugg {
+    border-radius: 18px;
+    background: #323d48;
+    text-align: center;
+    width: fit-content;
+    padding: 10px;
+    font-family: Roboto;
+    font-size: 16px;
+    // position: absolute;
+    position: fixed;
+    // top: 0;
+    bottom: 10px;
+    right: 10px;
+
+    opacity: 0;
+    right: -10%;
+    transition: opacity 1s, right 1s;
+}
+.selectCard {
+    border: 3px solid rgb(255, 255, 255);
+}
+.notif-banner {
+    position: fixed;
+    top: 0;
+    right: -10%;
+    width: fit-content;
+    display: flex;
+
+    align-content: center;
+    padding: 5px;
+
+    border-radius: 18px;
+    opacity: 0;
+
+    transition: opacity 1s, right 1s;
+}
+.notif-banner__img {
+    width: 50px;
+}
+.notif-banner__msg {
+    align-self: center;
+    padding-left: 5px;
+    font-family: Roboto;
+    font-size: 16px;
+}
+.fade-in {
+    opacity: 1;
+    right: 0;
+}
+@import '_kebabMenu';
+
+.add-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    border: 1px solid rgb(255, 255, 255);
+    cursor: pointer;
+    border-radius: 50%;
+    height: 70px;
+    width: 70px;
+    font-size: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 750ms;
+    &:hover {
+        opacity: 1;
+    }
+}
+.opacity-01 {
+    opacity: 0.1;
+}
